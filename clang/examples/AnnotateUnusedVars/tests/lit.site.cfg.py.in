@@ -1,0 +1,21 @@
+import lit.formats
+import os
+
+config.name = 'ClangAnnotateUnusedVars'
+config.test_format = lit.formats.ShTest(True)
+config.suffixes = ['.cpp']
+
+config.clang_bin = r"@LLVM_BINARY_DIR@/bin/clang"
+config.plugin_path = r"@LLVM_LIBRARY_OUTPUT_INTDIR@/AnnotateUnusedVars.so"
+config.filecheck_bin = r"@LLVM_BINARY_DIR@/bin/FileCheck"
+
+config.test_source_root = r"@ANNOTATE_UNUSED_SOURCE_DIR@"
+config.test_exec_root = r"@ANNOTATE_UNUSED_BINARY_DIR@"
+
+config.substitutions.append(('%clang_cc1', f"{config.clang_bin} -cc1"))
+config.substitutions.append(('%plugin_path', config.plugin_path))
+
+config.environment['PATH'] = os.path.pathsep.join([
+    os.path.dirname(config.filecheck_bin), 
+    config.environment.get('PATH', '')
+])
