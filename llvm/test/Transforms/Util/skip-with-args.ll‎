@@ -1,0 +1,16 @@
+; RUN: opt -passes=simple-inliner -S < %s | FileCheck %s
+
+define void @callee_with_args(i32 %a) {
+entry:
+  ret void
+}
+
+define void @caller(i32 %val) {
+; CHECK-LABEL: define void @caller
+; CHECK: entry:
+; CHECK-NEXT: call void @callee_with_args(i32 %val)
+; CHECK-NEXT: ret void
+entry:
+  call void @callee_with_args(i32 %val)
+  ret void
+}

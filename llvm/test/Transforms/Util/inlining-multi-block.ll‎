@@ -1,0 +1,37 @@
+; RUN: opt -passes=simple-inliner -S < %s | FileCheck %s
+
+declare void @foo()
+declare void @bar()
+
+define void @callee_with_cfg() {
+entry:
+  br i1 undef, label %left, label %right
+left:
+  call void @foo()
+  ret void
+right:
+  call void @bar()
+  ret void
+}
+
+define void @caller() {
+; CHECK-LABEL: define void @caller()
+; CHECK-NEXT: entry:
+; CHECK-NEXT:   br label %entrycloned
+
+; CHECK: post.call:
+; CHECK-NEXT:   ret void
+
+; CHECK: entrycloned:
+; CHECK-NEXT:   br i1 undef, label %leftcloned, label %rightcloned
+; CHECK: leftcloned:
+; CHECK-NEXT:   call void @foo()
+; CHECK-NEXT:   br label %post.call
+; CHECK: rightcloned:
+; CHECK-NEXT:   call void @bar()
+; CHECK-NEXT:   br label %post.call
+
+entry:
+  call void @callee_with_cfg()
+  ret void
+}
